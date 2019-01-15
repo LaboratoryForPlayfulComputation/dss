@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "lib": [
+            "esnext",
+            "dom"
+        ],
+        "rootDir": "src",
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "alwaysStrict": true,
+        "removeComments": true,
+        "outDir": "dist/",
+        "sourceMap": true,
+        "declaration": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ]
+}

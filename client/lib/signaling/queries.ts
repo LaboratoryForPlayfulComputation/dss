@@ -5,12 +5,12 @@ subscription OnConnectionEvent($id: ID!) {
     connectionEvent(toID: $id) {
         type,
         from,
-        sdp
+        data
     }
 }`;
 
-export const SDPEventMutation = gql`
-mutation RaiseEventMutation($event: SDPInput!) {
+export const PeerEventMutation = gql`
+mutation RaiseEventMutation($event: EventInput!) {
     raise(event: $event) {
         code,
         status

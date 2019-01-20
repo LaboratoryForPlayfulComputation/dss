@@ -2,12 +2,11 @@
     "compilerOptions": {
         "module": "commonjs",
         "moduleResolution": "node",
-        "target": "es6",
+        "target": "es5",
         "lib": [
             "esnext",
             "dom"
         ],
-        "rootDir": "src",
         "noImplicitAny": true,
         "noImplicitThis": true,
         "noUnusedLocals": true,
@@ -19,6 +18,7 @@
         "declaration": true
     },
     "include": [
-        "src/**/*.ts"
+        "lib/**/*.ts",
+        "examples/**/*.ts"
     ]
 }

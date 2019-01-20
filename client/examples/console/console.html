@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <title>DSS Client Web Console</title>
+    <meta charset="utf-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js" integrity="sha256-t8GepnyPmw9t+foMh3mKNvcorqNHamSKtKRxxpUEgFI="
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/accordion.min.js" integrity="sha256-kt0Dfi+mrxAU+iYsfDrkROHrb55Hi0lVWC7MT46/xnU="
+        crossorigin="anonymous"></script>
+    <script src="../../dist/dss-client.bundle.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" integrity="sha256-9mbkOfVho3ZPXfM7W8sV2SndrGDuh7wuyLjtsWeTI1Q="
+        crossorigin="anonymous" />
+</head>
+
+<body>
+    <!-- This is mostly Semantic UI stuff. The real meat of the WebRTC example is in the final <script> tag -->
+    <div class="ui container" style="padding-top: 1em; padding-bottom: 1em; height: 100%;">
+        <div style="height: 5em;">
+            <h1>DSS Demo Console</h1>
+            <hr />
+        </div>
+        <div class="ui grid" style="height: calc(100% - 5em);">
+            <div class="six wide column">
+                <h3>Settings</h3>
+                <form class="ui form" id="clientSettings">
+                    <div class="field">
+                        <label>Local ID</label>
+                        <input type="text" id="localID" name="localID" placeholder="Enter the local id, or leave blank to choose randomly" />
+                    </div>
+                    <div class="field">
+                        <label>Remote ID</label>
+                        <input type="text" id="remoteID" name="remoteID" placeholder="Enter the remote ID if using the 'connect' peer mode" />
+                    </div>
+                    <div class="inline fields">
+                        <label for="peermode">Peer mode:</label>
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input type="radio" id="peermode-connect" name="peermode" value="ping" checked tabindex="0"
+                                    class="hidden" />
+                                <label>Ping</label>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input type="radio" id="peermode-echo" name="peermode" value="echo" tabindex="0" class="hidden" />
+                                <label>Echo</label>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="startButton" class="ui right floated primary icon button">
+                        <i class="icon play"></i>
+                        Start
+                    </button>
+                    <div class="ui accordion field">
+                        <div class="title">
+                            <i class="dropdown icon"></i>
+                            Server Settings
+                        </div>
+                        <div class="content field">
+                            <div class="field">
+                                <label>GraphQL Server</label>
+                                <div class="ui left labeled input">
+                                    <div class="ui dropdown label">
+                                        <i class="dropdown icon"></i>
+                                        <div id="httpMode" class="text">http://</div>
+                                        <div class="menu">
+                                            <div class="item">http://</div>
+                                            <div class="item">https://</div>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="apiServer" value="localhost:4000/graphql" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="ten wide column" style="height: 100%">
+                <div class="ui segment" style="height: 100%; overflow-y: scroll;">
+                    <div id="contentList" class="ui relaxed list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let contentList = undefined;
+
+        // Print to the list on the right side of the page
+        function logToList(msg, ...args) {
+            if (contentList) {
+                const time = new Date();
+                const messageStr = msg + ((args.length === 0) ? "" : (": " + args.toString()));
+                const newDiv = $('<div class="item" />');
+                const contentStr = "[" + time.toLocaleTimeString() + "] " + messageStr;
+                newDiv.text(contentStr);
+                contentList.prepend(newDiv);
+            }
+        }
+
+        function echoClient(client) {
+            logToList("Listening for connections...");
+            client.on("CONN_OPEN", function (args) {
+                const channel = args[1];
+                logToList("Connection opened: " + channel.name);
+                channel.onmessage = function (message) {
+                    logToList("Got data: " + message.data);
+                    channel.send(message.data);
+                }
+            })
+        }
+
+        function pingClient(client, remoteID) {
+            client.openDataChannel('comms', remoteID)
+                .then(function (channel) {
+                    logToList("Connection opened: " + channel.name);
+                    channel.onmessage = function (message) {
+                        logToList("Got data: " + message.data);
+                    }
+                    let i = 0;
+                    const f = function () {
+                        channel.send("Ping" + i);
+                        i += 1;
+                        setTimeout(f, 2000);
+                    }
+                    f();
+                });
+        }
+
+        function getSettingsFromUI() {
+            let localID = $('input#localID').val();
+            localID = localID === "" ? undefined : localID;
+
+            const secMode = $('div#httpMode').val();
+            const isSecure = secMode === "https://";
+
+            const serverString = $('input#apiServer').val();
+            const endpointIndex = serverString.indexOf('/');
+            const hostInfo = serverString.substring(0, endpointIndex).split(':');
+
+            const defaultPort = isSecure ? 443 : 80;
+
+            return {
+                endpoint: serverString.substring(endpointIndex),
+                host: hostInfo[0],
+                id: localID,
+                port: hostInfo.length === 2 ? parseInt(hostInfo[1]) : defaultPort,
+                secure: isSecure,
+                webRTCOptions: {
+                    peerOptions: {}
+                }
+            }
+        }
+
+        let running = false
+        // Handles a click on the "Start" button
+        function startHandler(event) {
+            event.preventDefault();
+            if (running) {
+                return;
+            }
+            running = true;
+            $('button#startButton').attr('disabled', 'disabled').addClass('loading');
+
+            const settings = getSettingsFromUI();
+            console.log("Client settings", settings);
+
+            const peerMode = $('input[name=peermode]:checked', "#clientSettings").val();
+            let remoteID = $('input#remoteID').val();
+            console.log("Peer Settings (peerMode, remoteID)", peerMode, remoteID);
+
+            if (remoteID === "" && peerMode === "ping") {
+                logToList("ERROR: enter a remote ID");
+                running = false;
+                const btn = $('button#startButton')
+                btn.removeClass('loading');
+                btn.removeAttr('disabled');
+                return;
+            } else if (remoteID !== "" && peerMode === "echo") {
+                logToList("WARNING: ignoring Remote ID in 'echo' mode.");
+            }
+
+            logToList("Starting ");
+
+            let client = new dss.SignalingClient(settings);
+            client.start();
+            logToList("Client initialized as " + client.id);
+
+            $('input#localID').val(client.id).attr('readonly', 'readonly');
+            $('input#remoteID').attr('readonly', 'readonly');
+
+            if (peerMode === "ping") {
+                pingClient(client, remoteID);
+            } else {
+                echoClient(client);
+            }
+        }
+
+        $(document).ready(function () {
+            contentList = $('div#contentList');
+
+            $('.ui.radio.checkbox').checkbox();
+            $('.ui.accordion').accordion();
+            $('.ui.dropdown').dropdown();
+
+            $('button#startButton').on('click', startHandler);
+        });
+
+    </script>
+</body>
+
+</html>

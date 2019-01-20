@@ -11,15 +11,6 @@ export function getWebRTCImplementation(): IWebRTCImplementation | undefined {
         // undefined.
         return try_require('wrtc');
     } else {
-        // The Adapter is just going to be required. We require these things to
-        // be available to reference them from the window. Every example uses it
-        // so we do to.
-        const adapter = try_require('webrtc-adapter');
-
-        if (!adapter) {
-            return undefined;
-        }
-
         return {
             // Why aren't these types compatible?
             RTCPeerConnection: (window as any).RTCPeerConnection,

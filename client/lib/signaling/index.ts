@@ -2,7 +2,7 @@
  * dss-client/signaling
  * 
  * Provides an interface to dss-server using GraphQL subscription.  If no
- * implementation of `WebSocket` is available (`ws` or the browser's WebSocket),
+ * implementation of `WebRTC` is available (`wrtc` or the browser's implementation),
  * then one must be provided.
  */
 
@@ -206,7 +206,7 @@ export class SignalingClient extends EventEmitter {
         this._id = this.opts.id || uuidv4();
         this.rtc = this.opts.webRTCImplementation || getWebRTCImplementation();
 
-        if (this.rtc === undefined) {
+        if (this.rtc === undefined || this.rtc.RTCPeerConnection === undefined) {
             throw new Error("No WebRTC implementation is available. Either provide one as ISignalingOptions.webRTCImplementation or install 'wrtc' in Node.");
         }
 
@@ -253,7 +253,10 @@ export class SignalingClient extends EventEmitter {
             const peerConnection = (new _this.rtc.RTCPeerConnection(_this.opts.webRTCOptions.peerOptions)) as RTCPeerConnection;
             _this.peerConnections[otherID] = peerConnection;
 
-            this.addIceCandidateHandler(peerConnection, otherID);
+            const candidateQueue: RTCPeerConnectionIceEvent[] = [];
+            (peerConnection as any)._dssCandidateQueue = candidateQueue;
+
+            this.addIceCandidateHandler(peerConnection, otherID, candidateQueue);
             addDebuggingStateListeners(peerConnection, otherID);
 
             const dc = peerConnection.createDataChannel(name);
@@ -298,11 +301,14 @@ export class SignalingClient extends EventEmitter {
         }
     }
 
-    private addIceCandidateHandler(conn: RTCPeerConnection, otherID: string) {
+    private addIceCandidateHandler(conn: RTCPeerConnection, otherID: string, queue: RTCPeerConnectionIceEvent[]) {
         // tslint:disable-next-line:variable-name
         const _this = this;
         conn.onicecandidate = (candidateEvent) => {
-            if (candidateEvent.candidate) {
+            if (!conn.remoteDescription) {
+                queue.push(candidateEvent);
+                return;
+            } else if (candidateEvent.candidate) {
                 _this.sendEvent({
                     data: JSON.stringify(candidateEvent.candidate),
                     from: _this._id,
@@ -331,9 +337,23 @@ export class SignalingClient extends EventEmitter {
                 }
             }
 
+            const candidateQueue: RTCPeerConnectionIceEvent[] = [];
+
+            this.addIceCandidateHandler(peerConnection, otherID, candidateQueue);
+            addDebuggingStateListeners(peerConnection, otherID);
+
             return new Promise((resolve, reject) => {
                 peerConnection.setRemoteDescription(sdp)
                     .then(() => {
+                        // Since we're setting the remote description now,
+                        // we can flush the candidate queue we created above.
+                        return candidateQueue.forEach((event) => {
+                            console.log("Flushing " + event);
+                            peerConnection.onicecandidate(event);
+                        });
+                    })
+                    .then(() => {
+
                         return peerConnection.createAnswer()
                             .then((answer) => {
                                 return peerConnection.setLocalDescription(answer).then(() => {
@@ -365,16 +385,24 @@ export class SignalingClient extends EventEmitter {
         const _this = this;
         const otherID = e.from;
         const sdp = (JSON.parse(e.data)) as RTCSessionDescriptionInit;
-        const pc = _this.peerConnections[otherID];
+        const peerConnection = _this.peerConnections[otherID];
 
         // This is the only case where _pc === undefined is an error.
-        if (pc === undefined) {
+        if (peerConnection === undefined) {
             console.log("Phony answer from " + otherID);
             _this.emit("PHONY_ANSWER", [e]);
             return;
         }
 
-        return pc.setRemoteDescription(sdp);
+        return peerConnection.setRemoteDescription(sdp)
+            .then(() => {
+                const cQ: RTCPeerConnectionIceEvent[] = (peerConnection as any)._dssCandidateQueue;
+                cQ.forEach((event) => {
+                    console.log("Flushing " + event);
+                    peerConnection.onicecandidate(event);
+                });
+
+            });
     }
 
     private _onCandidateReceived(e: IPeerEvent) {

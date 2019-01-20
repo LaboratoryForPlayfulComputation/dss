@@ -8,7 +8,7 @@ const helpString = `Commands:
     set-id [ID] : set the id of your peer
     get-id : print the id of your peer
     init: Initalize the client (must be called before 'connect' or 'echo')
-    connect [ID] : initiate a connection to the remote ID
+    ping [ID] : initiate a connection to the remote ID
     echo : listen for connections and echo data sent on them
 
 Use EOF (Ctrl-D) to exit.
@@ -57,7 +57,7 @@ function handleLine(line: string): typeof state {
             });
             state.client.start();
             return state;
-        case "connect":
+        case "ping":
             if (!state.initialized) {
                 console.log("Not initialized!");
                 return state;

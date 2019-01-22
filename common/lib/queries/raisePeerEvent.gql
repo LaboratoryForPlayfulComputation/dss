@@ -1,0 +1,6 @@
+mutation RaisePeerEvent($event: DSSPeerEventInput!) {
+    raise(event: $event) {
+        code,
+        status
+    }
+}

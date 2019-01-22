@@ -1,10 +1,9 @@
 {
     "compilerOptions": {
-        "outDir": "dist/",
         "rootDir": ".",
-        "module": "commonjs",
+        "module": "esnext",
         "moduleResolution": "node",
-        "target": "es6",
+        "target": "esnext",
         "lib": [
             "esnext"
         ],
@@ -15,10 +14,12 @@
         "alwaysStrict": true,
         "removeComments": true,
         "sourceMap": true,
-        "declaration": true
+        "declaration": true,
+        "esModuleInterop": true,
+        "noEmit": true,
     },
     "include": [
         "lib/**/*.ts",
-        "test/**/*.ts"
+        "bin/**/*.ts"
     ]
 }

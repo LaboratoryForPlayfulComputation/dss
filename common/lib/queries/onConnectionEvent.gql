@@ -1,0 +1,7 @@
+subscription OnConnectionEvent($id: ID!) {
+    connectionEvent(toID: $id) {
+        type,
+        from,
+        data
+    }
+}

@@ -444,7 +444,7 @@ export class SignalingClient extends EventEmitter {
 
     private sendEvent(packedEvent: IPeerEvent) {
         return this.client.mutate<IRaiseFetchResponse>({
-            mutation: ClientQueries.PeerEventMutation,
+            mutation: ClientQueries.raisePeerEvent,
             variables: {
                 event: packedEvent
             }
@@ -454,7 +454,7 @@ export class SignalingClient extends EventEmitter {
     private _initSubscription() {
         const handler = this._handlePeerEvent.bind(this);
         this.client.subscribe({
-            query: ClientQueries.connectionEventSubscription,
+            query: ClientQueries.onConnectionEvent,
             variables: {
                 id: this._id
             }

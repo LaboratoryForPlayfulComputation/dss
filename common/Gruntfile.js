@@ -32,25 +32,18 @@ function gruntBuild(grunt) {
             default: {
                 src: sourceFiles,
                 options: {
-                    target: "esnext",
                     rootDir: ".",
-                    module: "esnext",
-                    moduleResolution: "node",
-                    esModuleInterop: true,
                     lib: [
                         "esnext"
                     ],
                     emitDeclarationOnly: true,
                     noImplicitAny: true,
-                    noImplicitAny: true,
                     noUnusedLocals: true,
                     noUnusedParameters: true,
                     alwaysStrict: true,
-                    removeComments: false,
-                    inlineSourceMap: true,
-                    inlineSources: true,
                     declaration: true,
                     declarationDir: "dist/",
+                    additionalFlags: '--emitDeclarationOnly'
                 }
             }
         },
@@ -89,6 +82,11 @@ function gruntBuild(grunt) {
     ]
 
     grunt.registerTask("default", defaultTask);
+
+    grunt.registerTask("rebuild", [
+        "clean",
+        "default",
+    ])
 }
 
 module.exports = gruntBuild;

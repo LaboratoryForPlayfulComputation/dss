@@ -1,9 +1,9 @@
+import http from 'http';
+
 import express from 'express';
-import * as http from "http";
 
 import { withFilter } from 'apollo-server';
 import { ApolloServer, PubSub } from 'apollo-server-express';
-
 import { ServerSchema } from 'dss-common';
 
 const pubsub = new PubSub();
@@ -44,21 +44,31 @@ const resolvers = {
     },
 };
 
-const server = new ApolloServer({
-    resolvers,
-    typeDefs: ServerSchema,
-});
+export class ServerManager {
+    private app: express.Express;
+    private server: ApolloServer;
 
-const app = express();
-server.applyMiddleware({ app });
+    constructor(app?: express.Express) {
+        this.app = app || express();
+        this.server = new ApolloServer({
+            resolvers,
+            typeDefs: ServerSchema,
+        });
+    }
 
-const httpServer = http.createServer(app);
+    get path() {
+        return this.server.graphqlPath;
+    }
 
-server.installSubscriptionHandlers(httpServer);
+    public mountServer(path?: string): http.Server {
+        // Install the handlers and return an httpServer instance
+        this.server.applyMiddleware({
+            app: this.app,
+            path
+        });
+        const httpServer = http.createServer(this.app);
+        this.server.installSubscriptionHandlers(httpServer);
+        return httpServer;
 
-const PORT = 4000;
-
-httpServer.listen(PORT, () =>
-    // tslint:disable-next-line:no-console
-    console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
-);
+    }
+}

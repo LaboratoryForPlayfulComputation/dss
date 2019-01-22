@@ -1,11 +1,11 @@
 {
   "name": "dss-server",
   "version": "0.1.0",
-  "description": "Main server for BlockyTalky3",
+  "description": "Dead-Simple Signaling (DSS) Server Library",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
   "scripts": {
-    "server": "node dist/lib/index.js",
+    "server": "node dist/bin/simple_server.js",
     "grunt": "grunt"
   },
   "author": "William Temple <William.Temple@colorado.edu>",
@@ -25,8 +25,10 @@
     "@types/graphql": "^14.0.5",
     "@types/node": "^10.12.18",
     "grunt": "^1.0.3",
+    "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-ts": "^6.0.0-beta.22",
+    "load-grunt-tasks": "^4.0.0",
     "tslint": "^5.12.1",
     "tslint-config-prettier": "^1.17.0",
     "typescript": "^3.2.4"

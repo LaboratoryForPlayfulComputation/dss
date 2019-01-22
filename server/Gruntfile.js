@@ -1,30 +1,21 @@
 "use strict";
 
 function gruntBuild(grunt) {
+    require('load-grunt-tasks')(grunt);
     grunt.initConfig({
-        copy: {
-            build: {
-                files: [
-                    {
-                        expand: true,
-                        src: ["public/**"],
-                        dest: "./dist/public/"
-                    }
-                ]
-            }
-        },
         ts: {
             default: {
                 tsconfig: "./tsconfig.json",
             }
+        },
+        clean: {
+            default: ["dist/"]
         }
     });
 
-    grunt.loadNpmTasks("grunt-contrib-copy");
-    grunt.loadNpmTasks("grunt-ts");
+    grunt.loadNpmTasks("grunt-ts", "grunt-contrib-clean");
 
     grunt.registerTask("default", [
-        "copy",
         "ts"
     ]);
 }

@@ -21,6 +21,7 @@
     "@babel/preset-env": "^7.3.0",
     "@babel/preset-typescript": "^7.1.0",
     "@types/graphql": "^14.0.5",
+    "@types/node": "^10.12.18",
     "babel-plugin-import-graphql": "^2.6.2",
     "grunt": "^1.0.3",
     "grunt-babel": "^8.0.0",

@@ -25,9 +25,9 @@ import { getMainDefinition } from 'apollo-utilities';
 import { ClientOptions, SubscriptionClient } from 'subscriptions-transport-ws';
 
 
+import { ClientQueries } from 'dss-common';
 import { getWebRTCImplementation, IWebRTCImplementation } from '../webrtc';
 import { buildUrl } from './build-url';
-import { connectionEventSubscription, PeerEventMutation } from './queries';
 import { IPeerEvent, IRaiseFetchResponse, SubscriptionResponse } from './types';
 import { WebSocket } from './websocket';
 
@@ -444,7 +444,7 @@ export class SignalingClient extends EventEmitter {
 
     private sendEvent(packedEvent: IPeerEvent) {
         return this.client.mutate<IRaiseFetchResponse>({
-            mutation: PeerEventMutation,
+            mutation: ClientQueries.PeerEventMutation,
             variables: {
                 event: packedEvent
             }
@@ -454,7 +454,7 @@ export class SignalingClient extends EventEmitter {
     private _initSubscription() {
         const handler = this._handlePeerEvent.bind(this);
         this.client.subscribe({
-            query: connectionEventSubscription,
+            query: ClientQueries.connectionEventSubscription,
             variables: {
                 id: this._id
             }

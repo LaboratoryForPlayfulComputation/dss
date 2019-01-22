@@ -1,9 +1,15 @@
 import { isNode } from '../util/isnode';
-import { try_require } from '../util/try_require';
 
 function getWebSocketImplementation(): any {
     if (isNode) {
-        return try_require('ws');
+        try {
+            return require('ws');
+        } catch (error) {
+            if (error.code === 'MODULE_NOT_FOUND') {
+                return undefined;
+            }
+            throw error;
+        }
     } else {
         return (window as any).WebSocket;
     }

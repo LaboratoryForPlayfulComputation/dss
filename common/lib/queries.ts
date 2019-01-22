@@ -10,7 +10,7 @@ subscription OnConnectionEvent($id: ID!) {
 }`;
 
 export const PeerEventMutation = gql`
-mutation RaiseEventMutation($event: EventInput!) {
+mutation RaiseEventMutation($event: DSSPeerEventInput!) {
     raise(event: $event) {
         code,
         status

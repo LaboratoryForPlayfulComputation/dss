@@ -7,9 +7,8 @@ function gruntBuild(grunt) {
                 files: [
                     {
                         expand: true,
-                        cwd: "./public",
-                        src: ["**"],
-                        dest: "./dist/public"
+                        src: ["public/**"],
+                        dest: "./dist/public/"
                     }
                 ]
             }

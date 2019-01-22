@@ -15,11 +15,10 @@
         "alwaysStrict": true,
         "removeComments": true,
         "sourceMap": true,
-        "declaration": true,
-        "esModuleInterop": true
+        "declaration": true
     },
     "include": [
         "lib/**/*.ts",
-        "bin/**/*.ts"
+        "test/**/*.ts"
     ]
 }

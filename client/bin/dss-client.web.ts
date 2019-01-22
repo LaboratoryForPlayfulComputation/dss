@@ -3,6 +3,6 @@
 // Import the webrtc adapter for compatibility.
 import 'webrtc-adapter';
 
-import * as dss from './index';
+import * as dss from '../lib/index';
 
-(window as any).dss = dss;
+(window as any).DeadSimpleSignaling = dss;

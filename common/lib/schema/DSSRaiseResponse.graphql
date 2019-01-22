@@ -1,0 +1,4 @@
+type DSSRaiseResponse {
+    status: String,
+    code : Int,
+}

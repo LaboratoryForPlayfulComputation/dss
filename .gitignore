@@ -1,0 +1,9 @@
+node_modules/
+.vscode/
+.tscache/
+
+/server/dist/
+/client/dist/
+
+/common/dist/
+/common/build/

@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
+        "rootDir": ".",
+        "outDir": "dist/",
         "module": "commonjs",
         "moduleResolution": "node",
-        "target": "es5",
+        "target": "es6",
         "lib": [
             "esnext",
             "dom"
@@ -13,11 +15,11 @@
         "noUnusedParameters": true,
         "alwaysStrict": true,
         "removeComments": true,
-        "outDir": "dist/",
         "sourceMap": true,
         "declaration": true
     },
     "include": [
+        "bin/**/*.ts",
         "lib/**/*.ts",
         "examples/**/*.ts"
     ]

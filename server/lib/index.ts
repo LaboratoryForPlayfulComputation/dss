@@ -1,64 +1,36 @@
-import * as express from 'express';
+import express from 'express';
 import * as http from "http";
-const { ApolloServer, PubSub, gql } = require('apollo-server-express');
-const { withFilter } = require('apollo-server');
+
+import { withFilter } from 'apollo-server';
+import { ApolloServer, PubSub } from 'apollo-server-express';
+
+import { ServerSchema } from 'dss-common';
 
 const pubsub = new PubSub();
-
-// Construct a schema, using GraphQL schema language
-const typeDefs = gql`
-    type PeerEvent {
-        type: String
-        from: String,
-        to: String,
-        data: String,
-    },
-    input EventInput {
-        type: String
-        from: String,
-        to: String,
-        data: String,
-    },
-    type Response {
-        status: String,
-        code : Int,
-    },
-    type Query {
-        hello: String
-    },
-    type Mutation {
-        raise(event: EventInput) : Response,
-    },
-    type Subscription {
-        connectionEvent(toID: ID): PeerEvent,
-    }
-`;
 
 const PEER_EVENT = "PEER_EVENT";
 
 // Provide resolver functions for your schema fields
 const resolvers = {
-    Query: {
-        hello: () => "world",
-    },
     Mutation: {
-        raise: (_obj: any, args: any) => {
+        raise: (_: any, args: any) => {
             const event = args.event;
-            console.log(_obj);
-            console.log(args);
             pubsub.publish(PEER_EVENT, {
                 connectionEvent: {
-                    type: event.type,
+                    data: event.data,
                     from: event.from,
                     to: event.to,
-                    data: event.data,
+                    type: event.type,
                 },
             });
             return {
-                status: "ok",
                 code: 0,
+                status: "ok",
             };
         },
+    },
+    Query: {
+        hello: () => "world",
     },
     Subscription: {
         connectionEvent: {
@@ -73,8 +45,8 @@ const resolvers = {
 };
 
 const server = new ApolloServer({
-    typeDefs,
     resolvers,
+    typeDefs: ServerSchema,
 });
 
 const app = express();
@@ -87,5 +59,6 @@ server.installSubscriptionHandlers(httpServer);
 const PORT = 4000;
 
 httpServer.listen(PORT, () =>
+    // tslint:disable-next-line:no-console
     console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
 );

@@ -1,0 +1,13 @@
+type DSSPeerEvent {
+    type: String
+    from: String,
+    to: String,
+    data: String,
+}
+
+input DSSPeerEventInput {
+    type: String
+    from: String,
+    to: String,
+    data: String,
+}

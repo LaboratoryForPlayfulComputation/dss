@@ -1,0 +1,14 @@
+#import './DSSPeerEvent.graphql'
+#import './DSSRaiseResponse.graphql'
+
+type Query {
+    hello: String
+}
+
+type Mutation {
+    raise(event: DSSPeerEventInput) : DSSRaiseResponse,
+}
+
+type Subscription {
+    connectionEvent(toID: ID): DSSPeerEvent,
+}

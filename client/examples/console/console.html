@@ -184,7 +184,7 @@
 
             logToList("Starting ");
 
-            let client = new dss.SignalingClient(settings);
+            let client = new DeadSimpleSignaling.SignalingClient(settings);
             client.start();
             logToList("Client initialized as " + client.id);
 

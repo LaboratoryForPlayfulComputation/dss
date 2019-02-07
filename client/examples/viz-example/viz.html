@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .graph .axis {
+            stroke-width: 1;
+        }
+
+        .graph .axis .tick line {
+            stroke: black;
+        }
+
+        .graph .axis .tick text {
+            fill: black;
+            font-size: 0.7em;
+        }
+
+        .graph .axis .domain {
+            fill: none;
+            stroke: black;
+        }
+
+        .graph .group {
+            fill: none;
+            stroke: black;
+            stroke-width: 1.5;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="graph"></div>
+
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="../../dist/dss-client.bundle.js"></script>
+        <script>
+        var limit = 60,
+            duration = 750,
+            now = new Date(Date.now() - duration)
+
+        var width = 500,
+            height = 200
+
+        var output = {
+            value: 0,
+            color: 'red',
+            data: d3.range(limit).map(function() {
+                return 0
+            })
+        };
+
+        var x = d3.time.scale()
+            .domain([now - (limit - 2), now - duration])
+            .range([0, width])
+
+        var y = d3.scale.linear()
+            .domain([0, 100])
+            .range([height, 0])
+
+        var line = d3.svg.line()
+            .interpolate('basis')
+            .x(function(d, i) {
+                return x(now - (limit - 1 - i) * duration)
+            })
+            .y(function(d) {
+                return y(d)
+            })
+
+        var svg = d3.select('.graph').append('svg')
+            .attr('class', 'chart')
+            .attr('width', width)
+            .attr('height', height + 50)
+
+        var axis = svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
+            .call(x.axis = d3.svg.axis().scale(x).orient('bottom'))
+
+        var paths = svg.append('g')
+
+        output.path = paths.append('path')
+            .data([output.data])
+            .attr('class', 'output group')
+            .style('stroke', output.color)
+
+        var oldTime = new Date();
+
+        function tick(val) {
+            now = new Date()
+
+            // Add new values
+                //group.data.push(group.value) // Real values arrive at irregular intervals
+            output.data.push(val);
+            output.path.attr('d', line)
+
+            // Shift domain
+            x.domain([now - (limit - 2) * duration, now - duration])
+
+            oldTime = now;
+
+            // Slide x-axis left
+            axis.transition()
+                .duration(duration)
+                .ease('linear')
+                .call(x.axis)
+
+            // Slide paths left
+            paths.attr('transform', null)
+                .transition()
+                .duration(duration)
+                .ease('linear')
+                .attr('transform', 'translate(' + x(now - (limit - 1) * duration) + ')')
+
+            // Remove oldest data point from each group
+            output.data.shift()
+        }
+
+
+        function echoClient(client) {
+            console.log("Listening for connections...");
+            client.on("CONN_OPEN", function (args) {
+                const channel = args[1];
+                channel.onmessage = function (message) {
+                    tick(parseFloat(message.data));
+                }
+            });
+        }
+
+        var client = new DeadSimpleSignaling.SignalingClient({
+            endpoint: "/graphql",
+            host: "adriatic.local",
+            port: 8080,
+            id: "vizwindow",
+            secure: false,
+            webRTCOptions: {
+                peerOptions: {
+                    iceServers: [
+                        {urls: [
+                            'stuns:stun1.l.google.com:19302',
+                            'stuns:stun2.l.google.com:19302',
+                            'stuns:stun3.l.google.com:19302',
+                            'stuns:stun4.l.google.com:19302']
+                        }
+                    ]
+                }
+            }
+        });
+
+        console.log(client.id);
+        client.start();
+
+        echoClient(client);
+        </script>
+    </body>
+</html>

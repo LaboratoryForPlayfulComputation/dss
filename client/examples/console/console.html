@@ -149,7 +149,16 @@
                 port: hostInfo.length === 2 ? parseInt(hostInfo[1]) : defaultPort,
                 secure: isSecure,
                 webRTCOptions: {
-                    peerOptions: {}
+                    peerOptions: {
+                        iceServers: [
+                            {urls: [
+                                'stuns:stun1.l.google.com:19302',
+                                'stuns:stun2.l.google.com:19302',
+                                'stuns:stun3.l.google.com:19302',
+                                'stuns:stun4.l.google.com:19302']
+                            }
+                        ]
+                    }
                 }
             }
         }

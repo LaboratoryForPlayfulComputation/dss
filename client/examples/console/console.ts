@@ -52,7 +52,16 @@ function handleLine(line: string): typeof state {
                 port: 4000,
                 secure: false,
                 webRTCOptions: {
-                    peerOptions: {}
+                    peerOptions: {
+                        iceServers: [
+                            {urls: [
+                                'stuns:stun1.l.google.com:19302',
+                                'stuns:stun2.l.google.com:19302',
+                                'stuns:stun3.l.google.com:19302',
+                                'stuns:stun4.l.google.com:19302']
+                            }
+                        ]
+                    }
                 },
             });
             state.client.start();
